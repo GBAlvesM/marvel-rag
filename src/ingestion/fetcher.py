@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import requests
 import json
 import os
+import time
 
 load_dotenv()
 
@@ -24,7 +25,22 @@ def buscar_personagens(limite=100, offset=0):
             f"?api_key={API_COMICVINE}&format=json&limit={limite}&offset={offset}"
         )
 
-        resposta = requests.get(URL_PERSONAGENS, headers={"User-Agent": "marvel-rag"}).json()
+        tentativas = 0
+
+        while tentativas < 3:
+            response = requests.get(URL_PERSONAGENS, headers={"User-Agent": "marvel-rag"})
+            if response.status_code == 200:
+                break
+            else:
+                print(f"Erro ao buscar personagens: {response.status_code}")
+                tentativas += 1
+                time.sleep(20)
+
+
+        if tentativas >= 3:
+            return[] 
+
+        resposta = response.json()
 
         for character in resposta["results"]:
             personagem = {
@@ -67,6 +83,8 @@ def buscar_personagens(limite=100, offset=0):
             break
 
         offset += 100
+
+        time.sleep(20)
 
     return lista_personagens
 
